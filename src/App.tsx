@@ -36,7 +36,7 @@ export interface AvailabilityRecord {
 
 const PUBLIC_STATUS_LABELS: Record<AvailabilityStatus, string> = {
   Available: 'Available（可以約！）',
-  Occupied: 'No slot available（有人約左我了！）',
+  Occupied: 'Occupied（有人約左我了！）',
   Unavailable: 'No slot available（我唔得閒！）',
 };
 
