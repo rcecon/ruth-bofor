@@ -1,0 +1,89 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reusable Hardened Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAuthorizedTeacher() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (request.auth.token.email == "lawhiudak@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    // Validation Blueprint for AvailabilitySlot (matches firebase-blueprint.json)
+    function isValidAvailabilitySlot(data) {
+      return data.keys().hasAll(['date', 'timeSlot', 'status', 'updatedAt', 'updatedBy']) &&
+        data.keys().hasOnly(['date', 'timeSlot', 'status', 'updatedAt', 'updatedBy']) &&
+        data.date is string &&
+        data.date.size() >= 10 &&
+        data.date.size() <= 10 &&
+        data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+        data.timeSlot is string &&
+        data.timeSlot.size() >= 5 &&
+        data.timeSlot.size() <= 12 &&
+        (data.timeSlot == 'Lunch' || data.timeSlot == 'After School') &&
+        data.status is string &&
+        data.status.size() >= 8 &&
+        data.status.size() <= 11 &&
+        (data.status == 'Available' || data.status == 'Occupied' || data.status == 'Unavailable') &&
+        data.updatedAt is timestamp &&
+        data.updatedAt == request.time &&
+        data.updatedBy is string &&
+        data.updatedBy.size() >= 1 &&
+        data.updatedBy.size() <= 128 &&
+        data.updatedBy.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.updatedBy == request.auth.uid;
+    }
+
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && isValidId(adminId) && request.auth.uid == adminId;
+      allow list, create, update, delete: if false;
+    }
+
+    match /availability/{slotId} {
+      // Public students can view availability without logging in.
+      // Single-doc get validates slotId; list enforces valid status on existing resource data.
+      allow get: if isValidId(slotId);
+      allow list: if existing().status in ['Available', 'Occupied', 'Unavailable'];
+
+      // Only the authorized teacher can create, update, or delete availability slots
+      allow create: if isSignedIn() &&
+        isValidId(slotId) &&
+        isValidAvailabilitySlot(incoming()) &&
+        isAuthorizedTeacher();
+
+      allow update: if isSignedIn() &&
+        isValidId(slotId) &&
+        isValidAvailabilitySlot(incoming()) &&
+        incoming().date == existing().date &&
+        incoming().timeSlot == existing().timeSlot &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt', 'updatedBy']) &&
+        isAuthorizedTeacher();
+
+      allow delete: if isSignedIn() &&
+        isValidId(slotId) &&
+        isAuthorizedTeacher();
+    }
+  }
+}

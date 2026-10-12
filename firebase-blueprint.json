@@ -1,0 +1,53 @@
+{
+  "entities": {
+    "AvailabilitySlot": {
+      "title": "AvailabilitySlot",
+      "description": "Represents a single tutoring availability slot on a specific date and time slot (Lunch or After School).",
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "description": "Calendar date in YYYY-MM-DD format (Asia/Hong_Kong time zone).",
+          "minLength": 10,
+          "maxLength": 10,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "timeSlot": {
+          "type": "string",
+          "description": "The tutoring time slot on that date.",
+          "enum": ["Lunch", "After School"],
+          "minLength": 5,
+          "maxLength": 12
+        },
+        "status": {
+          "type": "string",
+          "description": "The internal availability status of the slot.",
+          "enum": ["Available", "Occupied", "Unavailable"],
+          "minLength": 8,
+          "maxLength": 11
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the last modification."
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "UID of the teacher who updated the slot.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        }
+      },
+      "required": ["date", "timeSlot", "status", "updatedAt", "updatedBy"]
+    }
+  },
+  "firestore": {
+    "/availability/{slotId}": {
+      "schema": {
+        "$ref": "#/entities/AvailabilitySlot"
+      },
+      "description": "Stores tutoring availability statuses keyed by slotId (e.g., YYYY-MM-DD_lunch or YYYY-MM-DD_after_school). Publicly readable by students, writable only by the authorized teacher."
+    }
+  }
+}

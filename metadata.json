@@ -1,0 +1,6 @@
+{
+  "name": "Tutoring Availability 約補課～！",
+  "description": "A simple web application for secondary school students in Hong Kong to check teacher tutoring availability for Lunch and After School time slots.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
