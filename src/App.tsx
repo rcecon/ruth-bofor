@@ -270,7 +270,7 @@ export default function App() {
         {/* Top bar: Small title on left, Teacher Edit button in top-right corner */}
         <header className="flex items-center justify-between gap-2 pb-3 sm:pb-4 mb-4 sm:mb-5 border-b border-[#d4e9dc]">
           <h1 className="text-base sm:text-xl font-semibold tracking-tight text-[#143325] whitespace-nowrap shrink-0">
-            Tutoring Availability
+            Tutoring Availability 約補課～！
           </h1>
 
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
